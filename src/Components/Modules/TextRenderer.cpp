@@ -1,4 +1,5 @@
 #include "TextRenderer.hpp"
+#include "ChatInput.hpp"
 #include "Console.hpp"
 #include "Events.hpp"
 
@@ -694,7 +695,7 @@ namespace Components
 
   bool TextRenderer::ChatHandleKeyDown(const int localClientNum, const int key)
   {
-    return HandleFontIconAutocompleteKey(localClientNum, FONT_ICON_ACI_CHAT, key);
+    return HandleFontIconAutocompleteKey(localClientNum, FONT_ICON_ACI_CHAT, key) || ChatInput::HandleKey(localClientNum, key);
   }
 
   constexpr auto Message_Key = 0x5A7E50;
@@ -1009,9 +1010,75 @@ namespace Components
     *outY = (y - pivotY) * cosAngle + pivotY + (x - pivotX) * sinAngle;
   }
 
+  unsigned int TextRenderer::ReadCharFromString(const char** text, int* byteCount)
+  {
+    std::uint32_t codepoint;
+    if (const auto length = Utils::Arabic::DecodeUtf8(*text, &codepoint); length > 0)
+    {
+      *text += length;
+      *byteCount = static_cast<int>(length);
+      return codepoint;
+    }
+
+    *byteCount = 1;
+    return Game::SEH_ReadCharFromString(text, nullptr);
+  }
+
+  Utils::Arabic::Token TextRenderer::GetRtlToken(const char* text)
+  {
+    if (text[0] == '^')
+    {
+      if (text[1] >= COLOR_FIRST_CHAR && text[1] <= COLOR_LAST_CHAR)
+      {
+        return {Utils::Arabic::TokenKind::Color, 2};
+      }
+
+      if ((text[1] == '\x01' || text[1] == '\x02') && text[2] && text[3] && text[4])
+      {
+        const auto materialNameLength = static_cast<std::uint8_t>(text[4]);
+        for (auto i = 0u; i < materialNameLength; i++)
+        {
+          if (text[5 + i] == 0)
+          {
+            return {Utils::Arabic::TokenKind::None, 0};
+          }
+        }
+
+        return {Utils::Arabic::TokenKind::Object, 5u + materialNameLength};
+      }
+    }
+
+    if (text[0] == FONT_ICON_SEPARATOR_CHARACTER)
+    {
+      FontIconInfo fontIconInfo{};
+      const char* fontIconEnd = text + 1;
+      if (IsFontIcon(fontIconEnd, fontIconInfo))
+      {
+        return {Utils::Arabic::TokenKind::Object, static_cast<std::size_t>(fontIconEnd - text)};
+      }
+    }
+
+    return {Utils::Arabic::TokenKind::None, 0};
+  }
+
+  std::string TextRenderer::PrepareRtlText(const char* text, int* cursor)
+  {
+    static const std::string resetColorCode{'^', CharForColorIndex(TEXT_COLOR_DEFAULT)};
+    return Utils::Arabic::ProcessForDisplay(text, GetRtlToken, resetColorCode, cursor);
+  }
+
   void TextRenderer::DrawText2D(const char* text, float x, float y, Game::Font_s* font, float xScale, float yScale, float sinAngle, float cosAngle, Game::GfxColor color, int maxLength, int renderFlags, int cursorPos, char cursorLetter, float padding, Game::GfxColor glowForcedColor, int fxBirthTime, int fxLetterTime, int fxDecayStartTime, int fxDecayDuration, Game::Material* fxMaterial, Game::Material* fxMaterialGlow)
   {
     UpdateColorTable();
+
+    // Arabic needs joined letter forms and right-to-left ordering, which the engine does not do
+    std::string displayText;
+    if (Utils::Arabic::ContainsRtl(text))
+    {
+      // Editable fields pass a cursor position into the original text, move it along with the reordered text
+      displayText = PrepareRtlText(text, (renderFlags & Game::TEXT_RENDERFLAG_CURSOR) ? &cursorPos : nullptr);
+      text = displayText.c_str();
+    }
 
     Game::GfxColor dropShadowColor{0};
     dropShadowColor.array[3] = color.array[3];
@@ -1088,7 +1155,10 @@ namespace Components
           Game::RB_DrawCursor(material, cursorLetter, xRot, yRot, sinAngle, cosAngle, font, xScale, yScale, color.packed);
         }
 
-        auto letter = Game::SEH_ReadCharFromString(&curText, nullptr);
+        int letterBytes;
+        auto letter = ReadCharFromString(&curText, &letterBytes);
+        // Cursor positions are byte offsets
+        count += letterBytes - 1;
 
         if (letter == '^' && *curText >= COLOR_FIRST_CHAR && *curText <= COLOR_LAST_CHAR)
         {
@@ -1288,10 +1358,19 @@ namespace Components
       return 0;
     }
 
+    // Shaping can merge letters, so measure the text as it will be drawn
+    std::string displayText;
+    if (Utils::Arabic::ContainsRtl(text))
+    {
+      displayText = PrepareRtlText(text);
+      text = displayText.c_str();
+    }
+
     auto count = 0;
     while (text && *text && count < maxChars)
     {
-      const auto letter = Game::SEH_ReadCharFromString(&text, nullptr);
+      int letterBytes;
+      const auto letter = ReadCharFromString(&text, &letterBytes);
       if (letter == '\r' || letter == '\n')
       {
         lineWidth = 0;

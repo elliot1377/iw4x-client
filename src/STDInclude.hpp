@@ -111,6 +111,7 @@ using namespace std::literals;
 
 #include "Utils/Memory.hpp" // Breaks order on purpose
 
+#include "Utils/Arabic.hpp"
 #include "Utils/Cache.hpp"
 #include "Utils/Chain.hpp"
 #include "Utils/Concurrency.hpp"

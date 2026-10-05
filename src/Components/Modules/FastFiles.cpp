@@ -1,6 +1,7 @@
 #include <zlib.h>
 
 #include "FastFiles.hpp"
+#include "ArabicFonts.hpp"
 
 namespace Components
 {
@@ -187,6 +188,12 @@ namespace Components
     if (FastFiles::Exists("iw4x_code_post_gfx_mp"))
     {
       data.push_back({ "iw4x_code_post_gfx_mp", zoneInfo->allocFlags, zoneInfo->freeFlags });
+    }
+
+    // Arabic capable fonts, picked up by the font lookup in ArabicFonts
+    if (FastFiles::Exists(ArabicFonts::ZONE_NAME))
+    {
+      data.push_back({ ArabicFonts::ZONE_NAME, zoneInfo->allocFlags, zoneInfo->freeFlags });
     }
 
     Game::DB_LoadXAssets(data.data(), data.size(), sync);
