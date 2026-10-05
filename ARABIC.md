@@ -1,10 +1,8 @@
-# IW4x Arabic | IW4x بالعربي
+# IW4x Arabic
 
 Arabic language support for [IW4x](https://github.com/iw4x/iw4x-client), the Call of Duty: Modern Warfare 2 (2009) multiplayer client.
 
-دعم كامل للغة العربية في IW4x لعبة Call of Duty: Modern Warfare 2 (2009).
-
-## Features | المميزات
+## Features
 
 - Arabic text rendering with joined letters and right-to-left ordering, including mixed Arabic, English and numbers
 - Noto Kufi Arabic font for menus and the HUD
@@ -12,15 +10,7 @@ Arabic language support for [IW4x](https://github.com/iw4x/iw4x-client), the Cal
 - Right-aligned menu text
 - Arabic typing in the chat box
 
----
-
-- عرض النص العربي بحروف متصلة ومن اليمين إلى اليسار، مع دعم النصوص المختلطة بالإنجليزية والأرقام
-- خط Noto Kufi Arabic للقوائم وواجهة اللعب
-- ترجمة أكثر من 6800 نص في اللعبة
-- محاذاة نصوص القوائم إلى اليمين
-- الكتابة بالعربي في الدردشة
-
-## Installation | التثبيت
+## Installation
 
 You need a working IW4x installation.
 
@@ -30,17 +20,7 @@ You need a working IW4x installation.
 
 Start the game with `iw4x-arabic.bat` or `iw4x.exe`, not the IW4x launcher: the launcher updates `iw4x.dll` and replaces the Arabic version.
 
----
-
-تحتاج إلى نسخة IW4x تعمل.
-
-1. حمّل `IW4x-Arabic.zip` من صفحة [الإصدارات](../../releases).
-2. فك الضغط داخل مجلد IW4x (المجلد الذي يحتوي على `iw4x.exe`) ووافق على استبدال الملفات.
-3. شغّل اللعبة من `iw4x-arabic.bat`.
-
-شغّل اللعبة من `iw4x-arabic.bat` أو `iw4x.exe` وليس من مشغّل IW4x، لأن المشغّل يحدّث `iw4x.dll` ويستبدل النسخة العربية.
-
-## Settings | الإعدادات
+## Settings
 
 | Command | Description |
 |---|---|
@@ -52,9 +32,7 @@ Start the game with `iw4x-arabic.bat` or `iw4x.exe`, not the IW4x launcher: the 
 
 To type Arabic in the chat, switch Windows to an Arabic keyboard layout.
 
-للكتابة بالعربي في الدردشة، غيّر لغة لوحة المفاتيح في ويندوز إلى العربية.
-
-## Improving the translation | تحسين الترجمة
+## Improving the translation
 
 The translation is in [`tools/arabic/translation/arabic.json`](tools/arabic/translation/arabic.json). Edit it, copy it to `userraw/localizedstrings/arabic.json` in your game folder and run `loc_reloadTranslation` in the console to see your changes.
 
@@ -66,9 +44,7 @@ python tools/arabic/check_translation.py <folder with english.json and arabic.js
 
 `english.json` is created from your own game files with `loc_dumpStrings` or `tools/arabic/extract_strings.py`.
 
-الترجمة موجودة في الملف [`tools/arabic/translation/arabic.json`](tools/arabic/translation/arabic.json). عدّله وانسخه إلى `userraw/localizedstrings/arabic.json` داخل مجلد اللعبة، ثم اكتب `loc_reloadTranslation` في الكونسول لرؤية التغييرات. حافظ على الرموز مثل `&&1` و`%s` و`[{+attack}]` وأكواد الألوان مثل `^3`.
-
-## Building | البناء
+## Building
 
 The client is built like upstream IW4x (see [README.md](README.md)), with Visual Studio 2022:
 
@@ -85,11 +61,11 @@ The font zone is built from the Noto Kufi Arabic font:
 3. Run `iw4x.exe -zonebuilder -stdout +buildzone iw4x_arabic`.
 4. Copy `zonebuilder_out/iw4x_arabic.ff` to `zone/english/`.
 
-## Credits | الشكر
+## Credits
 
 - [IW4x](https://github.com/iw4x/iw4x-client) and its contributors
 - [Noto Kufi Arabic](https://fonts.google.com/noto/specimen/Noto+Kufi+Arabic), licensed under the SIL Open Font License 1.1
 
-## License | الرخصة
+## License
 
 GPL-3.0, like IW4x. See [LICENSE](LICENSE). The font is licensed under the SIL Open Font License 1.1.
